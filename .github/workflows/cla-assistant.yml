@@ -1,0 +1,20 @@
+name: CLA Validation
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  actions: write
+  contents: read
+  pull-requests: write
+  statuses: write
+ 
+jobs:
+  CLAAssistant:
+    uses: ./.github/workflows/cla.yml
+    secrets:
+      CLA_APP_ID: ${{ secrets.SILABSIN_CLA_BOT_APP_ID }}
+      CLA_APP_PRIVATE_KEY: ${{ secrets.SILABSIN_CLA_BOT_APP_PRIVATE_KEY }}
