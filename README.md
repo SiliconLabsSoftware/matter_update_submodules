@@ -1,56 +1,71 @@
-# Developer Services template project
-** TODO ** Put project introduction here. 1-2 sentence about the project.
-## How to use the template
-1. Import the [basic ruleset](https://github.com/SiliconLabsSoftware/devs-template/blob/main/.github/rulesets/Silabs-basic-public-ruleset.json). Follow the official GitHub [guide](https://docs.github.com/en/enterprise-cloud@latest/organizations/managing-organization-settings/managing-rulesets-for-repositories-in-your-organization#importing-a-ruleset).
-2. Update if necessary the [issue_templates](.github/ISSUE_TEMPLATE/) and the [pull request template](./.github/PULL_REQUEST_TEMPLATE.md)
-3. Create your sw projects under [projects/](projects/) folder.
-4. Check [.gitignore](.gitignore) file and modify it if it is necessary
-5. Check the [./Dockerfile](./Dockerfile) and extend it if necessary
-6. Make sure that the whole project can be compiled with a single "make all" command.  
-   also implement "make clean"
-7. Fill out the [CODEOWNERS](./.github/CODEOWNERS) file. Here is the official github [guide](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners)
-8. Add github app private key for CLA assistant signature. Contact silicon labs github support person for it.
-9. Check the available [workflows](./.github/workflows) and adjust them according to the repo types (internal or public)
-10. Update this Readme file and remove this list from it.
 
-## Hardware requirements
-** TODO ** List the required hw components.
+# matter_update_submodules
 
-## Hardware Setup
-** TODO ** Create a block diagram about the components.
+This repository provides a composite GitHub Action to automate updating the `matter_sdk` submodule and create a pull request with the update.
 
-## Build environment setup
-** TODO ** Add steps here how to create a build environment. Remove the not supported platforms.
-### Docker
-Using Docker for the build environment has several advantages:
-- **Consistency**: Ensures the build environment is the same across all development machines.
-- **Isolation**: Keeps the build environment isolated from the host machine, avoiding conflicts.
-- **Portability**: Allows the build environment to be easily shared and reproduced.
-- **Scalability**: Simplifies scaling the build process across multiple machines.
+## Overview
 
-To set up the Docker-based build environment, follow these steps:
-1. Install Docker on your machine. Only Linux and MacOS platforms are supported for now.
-2. Clone the repository.
-3. Build the Docker image using the provided [Dockerfile](./Dockerfile).
-4. Run the Docker container with the necessary configurations.
+The composite action checks out the repository, updates the `third_party/matter_sdk` submodule to the latest commit on a specified branch, and creates a pull request if there are changes. This helps keep the submodule up to date with minimal manual intervention.
 
-### Windows
-** TODO ** With a numbered list define the process how to set up a development environment.
+This repo is necessary for updates of `matter_sdk` as dependabot crashes due to disk space issues because of the size of this submodule. This action is extensible to other repos which may have this limitation in the future.  
 
-### Linux
-** TODO ** With a numbered list define the process how to set up a development environment.
+## Usage
 
-### MacOS
-** TODO ** With a numbered list define the process how to set up a development environment.
 
-## Debug environment
-**TODO**
-Explain how can a developer debug this software project. Pictures are recommended.
-## Contributing
-Please follow the [CONTRIBUTING](./.github/CONTRIBUTING.md) guideline.
+## Example Workflow
+
+Below is an example workflow that demonstrates how to use this action with a matrix strategy to update the `matter_sdk` submodule on multiple branches.
+
+```yaml
+name: Update matter_sdk submodule
+
+on:
+   schedule:
+      - cron: '0 12 * * *' 
+   workflow_dispatch:
+
+jobs:
+   update-matter_sdk:
+      runs-on: ubuntu-latest
+      strategy:
+         matrix: 
+            target_branch: [main, release_2.8-1.5, <any_branch>]
+      steps:
+         - name: Checkout target branch
+            uses: actions/checkout@v6
+            with:
+               ref: ${{ matrix.target_branch }}
+               token: ${{ secrets.GITHUB_TOKEN }}
+
+         - name: Update matter_sdk submodule
+            uses: SiliconLabsSoftware/matter_update_submodules@main
+            with:
+               target_branch: ${{ matrix.target_branch }}
+               app-id: ${{ vars.SILABSSW_MATTER_CI_BOT_APP_ID }}
+               private-key: ${{ secrets.SILABSSW_MATTER_CI_BOT_APP_PRIVATE_KEY }}
+```
+
+### Inputs
+
+- `target_branch`: The branch to update the submodule on.
+- `app-id`: GitHub App ID for authentication.
+- `private-key`: GitHub App private key for authentication.
+
+### Outputs
+
+- `pr_branch`: The name of the created PR branch. Use case is for `matter_extension` repo to be able to run scripts and push commits to this created PR.
+
+## How it works
+
+1. Generates a GitHub App token using the provided App ID and private key.
+2. Checks out the repository at the specified target branch.
+3. Updates the `third_party/matter_sdk` submodule to the latest commit on the same branch.
+4. If the submodule was updated, creates a pull request with the changes.
+
+## Requirements
+
+- A GitHub App with permissions to create pull requests and update submodules.
+- The App ID and private key must be provided as secrets.
 
 ## License
 See the [LICENSE.md](./LICENSE.md) file for details.
-
-## Secrets
-** TODO** List here the necessary secrets. DO NOT USE PERSONAL ACCESS TOKENS IN PUBLIC REPOSITORIES.
