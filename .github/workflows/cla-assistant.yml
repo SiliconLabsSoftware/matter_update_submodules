@@ -14,7 +14,7 @@ permissions:
  
 jobs:
   CLAAssistant:
-    uses: ./.github/workflows/cla.yml
+    uses: SiliconLabsSoftware/matter_build_action/.github/workflows/cla.yml@main
     secrets:
       CLA_APP_ID: ${{ secrets.SILABSIN_CLA_BOT_APP_ID }}
       CLA_APP_PRIVATE_KEY: ${{ secrets.SILABSIN_CLA_BOT_APP_PRIVATE_KEY }}
