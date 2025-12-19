@@ -17,37 +17,52 @@ This repo is necessary for updates of `matter_sdk` as dependabot crashes due to 
 Below is an example workflow that demonstrates how to use this action with a matrix strategy to update the `matter_sdk` submodule on multiple branches.
 
 ```yaml
-name: Update matter_sdk submodule
+name: Update matter_sdk Submodule
+
+permissions:
+  contents: read
 
 on:
-   schedule:
-      - cron: '0 12 * * *' 
-   workflow_dispatch:
+  schedule:
+    - cron: '0 5 * * *' # Daily at midnight
+  workflow_dispatch:
+    inputs:
+      target_branch:
+        description: 'Target branch to update'
+        required: false
+        default: 'main'
 
 jobs:
-   update-matter_sdk:
-      runs-on: ubuntu-latest
-      strategy:
-         matrix: 
-            target_branch: [main, release_2.8-1.5, <any_branch>]
-      steps:
-         - name: Checkout target branch
-            uses: actions/checkout@v6
-            with:
-               ref: ${{ matrix.target_branch }}
-               token: ${{ secrets.GITHUB_TOKEN }}
+  update-matter_sdk:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: 
+        target_branch: >-
+          ${{
+            github.event_name == 'schedule'
+              && fromJson('["main","release_2.8-1.5","<branch_name>"]')
+              || fromJson(format('["{0}"]', inputs.target_branch))
+          }}
+    steps:
+      - name: Checkout target branch
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ matrix.target_branch }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-         - name: Update matter_sdk submodule
-            uses: SiliconLabsSoftware/matter_update_submodules@main
-            with:
-               target_branch: ${{ matrix.target_branch }}
-               app-id: ${{ vars.SILABSSW_MATTER_CI_BOT_APP_ID }}
-               private-key: ${{ secrets.SILABSSW_MATTER_CI_BOT_APP_PRIVATE_KEY }}
+      - name: Update matter_sdk submodule
+        uses: SiliconLabsSoftware/matter_update_submodules@main
+        with:
+          target_branch: ${{ matrix.target_branch }}
+          app-id: ${{ vars.SILABSSW_MATTER_CI_BOT_APP_ID }}
+          private-key: ${{ secrets.SILABSSW_MATTER_CI_BOT_APP_PRIVATE_KEY }}
 ```
 
 ### Inputs
 
 - `target_branch`: The branch to update the submodule on.
+  - On `schedule` trigger, user can add/remove branches in `fromJson('["main","release_2.8-1.5","<branch_name>"]')` to update daily
+  - On `workflow_dispatch` trigger from UI, user can manually input branch name to update submodule on
 - `app-id`: GitHub App ID for authentication.
 - `private-key`: GitHub App private key for authentication.
 
