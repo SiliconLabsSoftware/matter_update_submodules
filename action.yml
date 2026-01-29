@@ -40,8 +40,8 @@ runs:
         short_hash_before=$(cd third_party/matter_sdk && git rev-parse --short HEAD)
         echo "short_hash_before=${short_hash_before}" >> $GITHUB_OUTPUT
         cd third_party/matter_sdk
-        git fetch origin ${{ inputs.target_branch }}
-        git checkout origin/${{ inputs.target_branch }}
+        git fetch origin test_new_update
+        git checkout origin/test_new_update
         cd ../..
         git add third_party/matter_sdk
         if git diff-index --quiet HEAD; then
