@@ -49,7 +49,7 @@ runs:
         fi
         short_hash=$(cd third_party/matter_sdk && git rev-parse --short HEAD)
         echo "short_hash=${short_hash}" >> $GITHUB_OUTPUT
-        echo "pr_branch=update-matter-sdk-${{ inputs.target_branch }}-${short_hash}" >> $GITHUB_OUTPUT
+        echo "pr_branch=update-matter-sdk-${{ inputs.target_branch }}" >> $GITHUB_OUTPUT
 
     - name: Create PR
       if: steps.update_submodule.outputs.empty != 'true'
