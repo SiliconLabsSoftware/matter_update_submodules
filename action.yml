@@ -51,6 +51,15 @@ runs:
         echo "short_hash=${short_hash}" >> $GITHUB_OUTPUT
         echo "pr_branch=update-matter-sdk-${{ inputs.target_branch }}" >> $GITHUB_OUTPUT
 
+    - name: Rebase PR branch onto current target
+      if: steps.update_submodule.outputs.empty != 'true'
+      shell: bash
+      run: |
+        branch="${{ steps.update_submodule.outputs.pr_branch }}"
+        if git ls-remote --exit-code --heads origin "$branch" > /dev/null 2>&1; then
+          git push origin HEAD:refs/heads/"$branch" --force
+        fi
+
     - name: Create PR
       if: steps.update_submodule.outputs.empty != 'true'
       id: create_pr
