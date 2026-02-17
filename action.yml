@@ -6,10 +6,10 @@ inputs:
     required: true
   app-id:
     description: 'GitHub App ID'
-    required: true
+    required: false
   private-key:
     description: 'GitHub App private key'
-    required: true
+    required: false
 outputs:
   pr_branch:
     description: 'The name of the created PR branch (if any)'
@@ -28,7 +28,7 @@ runs:
       uses: actions/checkout@v6
       with:
         ref: ${{ inputs.target_branch }}
-        token: ${{ steps.generate_token.outputs.token }}
+        token: ${{ steps.generate_token.outputs.token || github.token }}
         submodules: false
 
     - name: Update submodule
@@ -65,7 +65,7 @@ runs:
       id: create_pr
       uses: peter-evans/create-pull-request@v7
       with:
-        token: ${{ steps.generate_token.outputs.token }}
+        token: ${{ steps.generate_token.outputs.token  || || github.token }}
         base: ${{ inputs.target_branch }}
         commit-message: "Update matter_sdk submodule to ${{ steps.update_submodule.outputs.short_hash }}"
         title: "[${{ inputs.target_branch }}] Update matter_sdk submodule to ${{ steps.update_submodule.outputs.short_hash }}"
