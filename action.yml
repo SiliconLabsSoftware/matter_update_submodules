@@ -32,6 +32,29 @@ runs:
         token: ${{ steps.generate_token.outputs.token || github.token }}
         submodules: false
 
+    - name: Rebase PR branch onto current target
+      shell: bash
+      run: |
+        branch="update-matter-sdk-${{ inputs.target_branch }}"
+        git fetch origin "${branch}" 2>/dev/null || exit 0
+
+        current_head=$(git rev-parse HEAD)
+        git checkout -b "${branch}" "origin/${branch}"
+        if git rebase "${current_head}"; then
+          git push origin "${branch}" --force
+        else
+          conflicting=$(git diff --name-only --diff-filter=U)
+          if [ "$conflicting" = "third_party/matter_sdk" ]; then
+            git checkout --theirs third_party/matter_sdk
+            git add third_party/matter_sdk
+            GIT_EDITOR=true git rebase --continue
+            git push origin "${branch}" --force
+          else
+            git rebase --abort # If the conflict is not in the matter_sdk submodule, abort the rebase and allow dev to manually resolve the conflict
+          fi
+        fi
+        git checkout "${{ inputs.target_branch }}"
+
     - name: Update submodule
       id: update_submodule
       shell: bash
@@ -51,15 +74,6 @@ runs:
         short_hash=$(cd third_party/matter_sdk && git rev-parse --short HEAD)
         echo "short_hash=${short_hash}" >> $GITHUB_OUTPUT
         echo "pr_branch=update-matter-sdk-${{ inputs.target_branch }}" >> $GITHUB_OUTPUT
-
-    - name: Rebase PR branch onto current target
-      if: steps.update_submodule.outputs.empty != 'true'
-      shell: bash
-      run: |
-        branch="${{ steps.update_submodule.outputs.pr_branch }}"
-        if git ls-remote --exit-code --heads origin "$branch" > /dev/null 2>&1; then
-          git push origin HEAD:refs/heads/"$branch" --force
-        fi
 
     - name: Create PR
       if: steps.update_submodule.outputs.empty != 'true'
