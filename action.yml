@@ -37,22 +37,9 @@ runs:
       run: |
         branch="update-matter-sdk-${{ inputs.target_branch }}"
         git fetch origin "${branch}" 2>/dev/null || exit 0
-
         current_head=$(git rev-parse HEAD)
         git checkout -b "${branch}" "origin/${branch}"
-        if git rebase "${current_head}"; then
-          git push origin "${branch}" --force
-        else
-          conflicting=$(git diff --name-only --diff-filter=U)
-          if [ "$conflicting" = "third_party/matter_sdk" ]; then
-            git checkout --theirs third_party/matter_sdk
-            git add third_party/matter_sdk
-            GIT_EDITOR=true git rebase --continue
-            git push origin "${branch}" --force
-          else
-            git rebase --abort # If the conflict is not in the matter_sdk submodule, abort the rebase and allow dev to manually resolve the conflict
-          fi
-        fi
+        git rebase "${current_head}" && git push origin "${branch}" --force || git rebase --abort
         git checkout "${{ inputs.target_branch }}"
 
     - name: Update submodule
@@ -63,8 +50,8 @@ runs:
         short_hash_before=$(cd third_party/matter_sdk && git rev-parse --short HEAD)
         echo "short_hash_before=${short_hash_before}" >> $GITHUB_OUTPUT
         cd third_party/matter_sdk
-        git fetch origin ${{ inputs.target_branch }}
-        git checkout origin/${{ inputs.target_branch }}
+        git fetch origin testing_submodule_updates
+        git checkout origin/testing_submodule_updates
         cd ../..
         git add third_party/matter_sdk
         if git diff-index --quiet HEAD; then
