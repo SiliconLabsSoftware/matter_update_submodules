@@ -10,9 +10,6 @@ inputs:
   private-key:
     description: 'GitHub App private key (optional). When omitted, the action uses GITHUB_TOKEN.'
     required: false
-  submodule_branch:
-    description: 'Branch/ref in the matter_sdk submodule to update to (optional). When omitted, target_branch is used.'
-    required: false
 outputs:
   pr_branch:
     description: 'The name of the created PR branch (if any)'
@@ -38,15 +35,13 @@ runs:
     - name: Update submodule
       id: update_submodule
       shell: bash
-      env:
-        SUBMODULE_REF: ${{ inputs.submodule_branch || inputs.target_branch }}
       run: |
         git submodule update --init third_party/matter_sdk
         short_hash_before=$(cd third_party/matter_sdk && git rev-parse --short HEAD)
         echo "short_hash_before=${short_hash_before}" >> $GITHUB_OUTPUT
         cd third_party/matter_sdk
-        git fetch origin $SUBMODULE_REF
-        git checkout origin/$SUBMODULE_REF
+        git fetch origin ${{ inputs.target_branch }}
+        git checkout origin/${{ inputs.target_branch }}
         cd ../..
         git add third_party/matter_sdk
         if git diff-index --quiet HEAD; then
