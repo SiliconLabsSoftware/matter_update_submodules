@@ -54,7 +54,7 @@ runs:
     - name: Create PR
       if: steps.update_submodule.outputs.empty != 'true'
       id: create_pr
-      uses: peter-evans/create-pull-request@v7
+      uses: peter-evans/create-pull-request@v8
       with:
         token: ${{ steps.generate_token.outputs.token }}
         base: ${{ inputs.target_branch }}
