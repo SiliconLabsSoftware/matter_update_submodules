@@ -54,7 +54,7 @@ jobs:
         uses: SiliconLabsSoftware/matter_update_submodules@main
         with:
           target_branch: ${{ matrix.target_branch }}
-          app-id: ${{ vars.SILABSSW_MATTER_CI_BOT_APP_ID }}
+          client-id: ${{ vars.SILABSSW_MATTER_CI_BOT_CLIENT_ID }}
           private-key: ${{ secrets.SILABSSW_MATTER_CI_BOT_APP_PRIVATE_KEY }}
 ```
 
@@ -63,7 +63,7 @@ jobs:
 - `target_branch`: The branch to update the submodule on.
   - On `schedule` trigger, user can add/remove branches in `fromJson('["main","release_2.8-1.5","<branch_name>"]')` to update daily
   - On `workflow_dispatch` trigger from UI, user can manually input branch name to update submodule on
-- `app-id`: GitHub App ID for authentication.
+- `client-id`: GitHub App **client ID** for authentication (from the App settings page). This is not the numeric App ID;
 - `private-key`: GitHub App private key for authentication.
 
 ### Outputs
@@ -72,7 +72,7 @@ jobs:
 
 ## How it works
 
-1. Generates a GitHub App token using the provided App ID and private key.
+1. Generates a GitHub App token using the provided client ID and private key.
 2. Checks out the repository at the specified target branch.
 3. Updates the `third_party/matter_sdk` submodule to the latest commit on the same branch.
 4. If the submodule was updated, creates a pull request with the changes.
@@ -80,7 +80,7 @@ jobs:
 ## Requirements
 
 - A GitHub App with permissions to create pull requests and update submodules.
-- The App ID and private key must be provided as secrets.
+- The App **client ID** (not the numeric App ID) and private key must be provided to the action.
 
 ## License
 See the [LICENSE.md](./LICENSE.md) file for details.
