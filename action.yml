@@ -57,6 +57,8 @@ runs:
       uses: peter-evans/create-pull-request@v8
       with:
         token: ${{ steps.generate_token.outputs.token }}
+        author: "silabs-matter-ci-bot[bot] <209700385+silabs-matter-ci-bot[bot]@users.noreply.github.com>"
+        committer: "silabs-matter-ci-bot[bot] <209700385+silabs-matter-ci-bot[bot]@users.noreply.github.com>"
         base: ${{ inputs.target_branch }}
         commit-message: "Update matter_sdk submodule to ${{ steps.update_submodule.outputs.short_hash }}"
         title: "[${{ inputs.target_branch }}] Update matter_sdk submodule to ${{ steps.update_submodule.outputs.short_hash }}"
